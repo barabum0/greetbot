@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "telegram-subscribe-bot"
 version = "0.1.0"
-description = "A bot that will accept applications in the telegram channel and write a greeting\u001b[D"
+description = "A bot that will accept applications in the telegram channel and write a greeting"
 authors = ["Roman Sushka <barabum@duck.com>"]
 license = "MIT"
 readme = "README.md"
