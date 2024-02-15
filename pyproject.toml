@@ -12,6 +12,7 @@ aiogram = "^3.3.0"
 pydantic = "^2.5.0"
 beanie = "^1.25.0"
 loguru = "^0.7.2"
+pydantic-settings = "^2.1.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"
