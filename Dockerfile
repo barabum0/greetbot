@@ -18,6 +18,5 @@ WORKDIR /usr/src/app
 COPY . /usr/src/app
 
 RUN poetry install
-RUN mkdir /usr/src/app/logs
 
 ENTRYPOINT ["poetry", "run", "app"]
