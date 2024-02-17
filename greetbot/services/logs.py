@@ -1,3 +1,4 @@
+import inspect
 import sys
 
 import logging
@@ -5,9 +6,21 @@ from loguru import logger
 
 
 class InterceptHandler(logging.Handler):
-    def emit(self, record):
-        level = logger.level(record.levelname).name
-        logger.log(level, record.getMessage())
+    def emit(self, record: logging.LogRecord) -> None:
+        # Get corresponding Loguru level if it exists.
+        level: str | int
+        try:
+            level = logger.level(record.levelname).name
+        except ValueError:
+            level = record.levelno
+
+        # Find caller from where originated the logged message.
+        frame, depth = inspect.currentframe(), 0
+        while frame and (depth == 0 or frame.f_code.co_filename == logging.__file__):
+            frame = frame.f_back
+            depth += 1
+
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 
 def configure_logger() -> None:
@@ -33,5 +46,3 @@ def configure_logger() -> None:
 
     logging.getLogger('aiogram').setLevel(logging.DEBUG)
     logging.getLogger('aiogram').addHandler(InterceptHandler())
-    logging.getLogger('asyncio').setLevel(logging.DEBUG)
-    logging.getLogger('asyncio').addHandler(InterceptHandler())
