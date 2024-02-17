@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  bot:
+    build: .
+    volumes:
+      - "./logs/:/usr/src/app/logs/"
+    restart: unless-stopped
+
+    env_file:
+      - ".env"
