@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram import Dispatcher, Bot
 
 from greetbot.routers import init_routers
@@ -15,3 +17,7 @@ async def main() -> None:
     init_routers(dispatcher)
 
     await dispatcher.start_polling(bot)
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
