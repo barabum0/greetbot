@@ -26,4 +26,4 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.poetry.scripts]
-app = "greetbot.__main__"
+app = "greetbot.__main__:main"
