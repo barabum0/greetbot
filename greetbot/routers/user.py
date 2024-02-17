@@ -5,6 +5,6 @@ from loguru import logger
 router = Router(name="User")
 
 
-@router.chat_join_request
+@router.chat_join_request()
 async def chat_join(request: ChatJoinRequest):
     logger.info("User {user} requested", user=request.from_user.username)
