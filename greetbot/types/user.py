@@ -5,7 +5,8 @@ from pydantic import Field
 
 
 class ChannelUser(Document):
-    user_id: int
+    id: int  # type: ignore
+    is_blocked: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Settings:
