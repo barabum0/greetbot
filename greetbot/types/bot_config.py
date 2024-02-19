@@ -1,4 +1,5 @@
 import asyncio
+import textwrap
 from datetime import datetime
 from enum import StrEnum
 
@@ -44,6 +45,22 @@ class Greeting(Document):
                 media_group.add(type=media.data_type.value, media=file, has_spoiler=media.in_spoiler)  # type: ignore
 
             await bot.send_media_group(chat_id, media=media_group.build())
+
+    @property
+    def settings_report(self) -> str:
+        output = ""
+        if self.caption:
+            output += f"Текст: `{textwrap.shorten(self.caption, width=10, placeholder='...')}`"
+
+        photo_count = sum(1 for m in self.media_files if m.data_type is MediaDataType.IMAGE)
+        video_count = sum(1 for m in self.media_files if m.data_type is MediaDataType.VIDEO)
+
+        if photo_count > 0:
+            output += f"\nКол-во фотографий: {photo_count}"
+        if video_count > 0:
+            output += f"\nКол-во фотографий: {video_count}"
+
+        return output
 
     class Settings:
         name = "greeting_messages"
