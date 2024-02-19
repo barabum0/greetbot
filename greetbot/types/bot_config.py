@@ -2,6 +2,7 @@ import asyncio
 import textwrap
 from datetime import datetime
 from enum import StrEnum
+from html import escape
 
 from aiogram import Bot
 from aiogram.types import BufferedInputFile
@@ -50,7 +51,7 @@ class Greeting(Document):
     def settings_report(self) -> str:
         output = ""
         if self.caption:
-            output += f"Текст: `{textwrap.shorten(self.caption, width=10, placeholder='...')}`"
+            output += f"Текст: `{escape(textwrap.shorten(self.caption, width=10, placeholder='...'), quote=False)}`"
 
         photo_count = sum(1 for m in self.media_files if m.data_type is MediaDataType.IMAGE)
         video_count = sum(1 for m in self.media_files if m.data_type is MediaDataType.VIDEO)
