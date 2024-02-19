@@ -22,7 +22,7 @@ class Greeting(BaseModel):
 
 class BotConfig(Document):
     id: int = 0  # type: ignore
-    greetings: list[Greeting] = []
+    greeting_messages: list[Greeting] = []
 
     class Settings:
         name = "bot_config"
