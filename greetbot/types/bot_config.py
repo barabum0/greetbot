@@ -29,7 +29,7 @@ class Greeting(Document):
     caption: str | None = None
     media_files: list[MediaFile]
 
-    is_enabled: bool = False
+    is_enabled: bool = True
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
