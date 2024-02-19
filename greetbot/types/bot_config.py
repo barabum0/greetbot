@@ -1,11 +1,12 @@
 import asyncio
+from datetime import datetime
 from enum import StrEnum
 
 from aiogram import Bot
 from aiogram.types import BufferedInputFile
 from aiogram.utils.media_group import MediaGroupBuilder
 from beanie import Document
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from greetbot.types.extra.file import Base64File
 from greetbot.types.settings import settings
@@ -22,9 +23,12 @@ class MediaFile(BaseModel):
     in_spoiler: bool = False
 
 
-class Greeting(BaseModel):
+class Greeting(Document):
     caption: str | None = None
     media_files: list[MediaFile]
+
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     async def send_as_aiogram_message(self, bot: Bot, chat_id: int) -> None:
         if len(self.media_files) == 0 and self.caption is not None:
@@ -39,13 +43,8 @@ class Greeting(BaseModel):
 
             await bot.send_media_group(chat_id, media=media_group.build())
 
-
-class BotConfig(Document):
-    id: int = 0  # type: ignore
-    greeting_messages: list[Greeting] = []
-
     class Settings:
-        name = "bot_config"
+        name = "greeting_messages"
 
 
 if __name__ == '__main__':
