@@ -15,6 +15,7 @@ async def chat_join(request: ChatJoinRequest, bot: Bot):
 
     await request.approve()
 
+    # TODO: сделать более простой метод + защиту от ошибок
     greetings = await Greeting.find(Greeting.is_enabled == True).to_list()
     for greeting in greetings:
         try:
