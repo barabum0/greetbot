@@ -24,6 +24,7 @@ class MediaFile(BaseModel):
     data_type: MediaDataType
     base64: Base64File
     in_spoiler: bool = False
+    file_name: str | None = None
 
 
 class Greeting(Document):
@@ -42,7 +43,7 @@ class Greeting(Document):
         elif len(self.media_files) > 0:
             media_group = MediaGroupBuilder(caption=self.caption)
             for media in self.media_files:
-                file = BufferedInputFile(file=media.base64.to_bytes(), filename="file")
+                file = BufferedInputFile(file=media.base64.to_bytes(), filename=media.file_name or "file")
 
                 media_group.add(type=media.data_type.value, media=file, has_spoiler=media.in_spoiler)  # type: ignore
 

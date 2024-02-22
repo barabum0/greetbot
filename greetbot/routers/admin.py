@@ -168,7 +168,7 @@ async def admin_add_greeting_media(messages: list[Message], bot: Bot, user_db: U
         elif message.document is not None:
             data = await bot.download(message.document.file_id)
             data_bytes = data.read()  # type: ignore
-            media_files.append(MediaFile(data_type=MediaDataType.DOCUMENT, base64=Base64File.from_bytes(data_bytes)))
+            media_files.append(MediaFile(data_type=MediaDataType.DOCUMENT, base64=Base64File.from_bytes(data_bytes), file_name=message.document.file_name or "file.txt"))
 
     state_data = await state.get_data()
     if state_data.get("caption", None) is None and len(media_files) == 0:
@@ -220,6 +220,10 @@ async def admin_add_greeting_media_not_media_group(message: Message, bot: Bot, u
         data = await bot.download(media.file_id)  # type: ignore
         data_bytes = data.read()  # type: ignore
         media_file = MediaFile(data_type=media_type, base64=Base64File.from_bytes(data_bytes))
+
+        if message.document:
+            media_file.file_name = message.document.file_name or "file.txt"
+
         media_files = [media_file]
 
     state_data = await state.get_data()
