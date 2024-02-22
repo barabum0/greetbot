@@ -139,8 +139,8 @@ async def admin_add_greeting_name(message: Message, bot: Bot, user_db: User, sta
     ]
 
     await message.answer(
-        f"Теперь отправьте нужные фото и видео <b>одним сообщением</b>"
-        f"\n<i>текст, документы, аудио и всё, кроме видео и изображений будет игнорироваться</i>"
+        f"Теперь отправьте нужные фото, документы и видео <b>одним сообщением</b>"
+        f"\n<i>текст, аудио и всё, кроме видео, документов и изображений будет игнорироваться</i>"
         f"\n<i><code>/no_media</code> для того, чтобы медиа не было</i>",
         reply_markup=ReplyKeyboardMarkup(keyboard=buttons, one_time_keyboard=True)
     )
@@ -172,7 +172,7 @@ async def admin_add_greeting_media(messages: list[Message], bot: Bot, user_db: U
 
     state_data = await state.get_data()
     if state_data.get("caption", None) is None and len(media_files) == 0:
-        await messages[-1].answer(f"Если в сообщении нету текста, там обязательно должны быть фотографии/видео")
+        await messages[-1].answer(f"Если в сообщении нету текста, там обязательно должны быть фотографии, видео или документ")
         return
 
     greeting = Greeting(caption=state_data.get("caption", None), media_files=media_files)
