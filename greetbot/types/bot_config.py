@@ -53,17 +53,20 @@ class Greeting(Document):
     def settings_report(self) -> str:
         output = ""
         if self.caption:
-            output += f"Текст: <code>{escape(textwrap.shorten(self.caption, width=10, placeholder='...'), quote=False)}</code>"
+            output += f"Текст: {escape(textwrap.shorten(self.caption.strip(), width=10, placeholder='...'), quote=False)}"
 
         photo_count = sum(1 for m in self.media_files if m.data_type is MediaDataType.IMAGE)
         video_count = sum(1 for m in self.media_files if m.data_type is MediaDataType.VIDEO)
+        document_count = sum(1 for m in self.media_files if m.data_type is MediaDataType.DOCUMENT)
 
         if photo_count > 0:
             output += f"\nКол-во фотографий: {photo_count}"
         if video_count > 0:
             output += f"\nКол-во фотографий: {video_count}"
+        if document_count > 0:
+            output += f"\nКол-во документов: {document_count}"
 
-        return output
+        return output.strip()
 
     class Settings:
         name = "greeting_messages"
