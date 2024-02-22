@@ -53,7 +53,7 @@ class Greeting(Document):
     def settings_report(self) -> str:
         output = ""
         if self.caption:
-            output += f"Текст: {escape(textwrap.shorten(self.caption.strip(), width=10, placeholder='...'), quote=False)}"
+            output += f"Текст: {escape(textwrap.shorten(self.caption.strip(), width=20, placeholder='...'), quote=False)}"
 
         photo_count = sum(1 for m in self.media_files if m.data_type is MediaDataType.IMAGE)
         video_count = sum(1 for m in self.media_files if m.data_type is MediaDataType.VIDEO)
