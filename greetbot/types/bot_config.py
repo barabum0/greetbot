@@ -17,6 +17,7 @@ from greetbot.types.settings import settings
 class MediaDataType(StrEnum):
     IMAGE = "photo"
     VIDEO = "video"
+    DOCUMENT = "document"
 
 
 class MediaFile(BaseModel):

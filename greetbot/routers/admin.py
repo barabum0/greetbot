@@ -3,6 +3,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, KeyboardButton, ReplyKeyboardMarkup
 from aiogram_media_group import media_group_handler, MediaGroupFilter
+from loguru import logger
 
 from greetbot.services.fsm_states import AddGreeting
 from greetbot.services.middlewares.user import UserDBMiddleware
@@ -153,6 +154,7 @@ async def admin_add_greeting_name(message: Message, bot: Bot, user_db: User, sta
 @router.message(AddGreeting.awaiting_media, (~F.text & F.media_group_id))
 @media_group_handler
 async def admin_add_greeting_media(messages: list[Message], bot: Bot, user_db: User, state: FSMContext) -> None:
+    logger.info("Caught a media group")
     media_files: list[MediaFile] = []
     for message in messages:
         if message.photo is not None:
@@ -163,6 +165,10 @@ async def admin_add_greeting_media(messages: list[Message], bot: Bot, user_db: U
             data = await bot.download(message.video.file_id)
             data_bytes = data.read()  # type: ignore
             media_files.append(MediaFile(data_type=MediaDataType.VIDEO, base64=Base64File.from_bytes(data_bytes)))
+        elif message.document is not None:
+            data = await bot.download(message.document.file_id)
+            data_bytes = data.read()  # type: ignore
+            media_files.append(MediaFile(data_type=MediaDataType.DOCUMENT, base64=Base64File.from_bytes(data_bytes)))
 
     state_data = await state.get_data()
     if state_data.get("caption", None) is None and len(media_files) == 0:
@@ -187,8 +193,9 @@ async def admin_add_greeting_media(messages: list[Message], bot: Bot, user_db: U
 
 @router.message(AddGreeting.awaiting_media)
 async def admin_add_greeting_media_not_media_group(message: Message, bot: Bot, user_db: User, state: FSMContext) -> None:
+    logger.info("Caught a single message")
     if message.text and not message.text.startswith("/no_media"):
-        await message.answer("Отправьте фото/видео!")
+        await message.answer("Отправьте фото, видео или документ!")
         return
 
     if message.text and message.text.startswith("/no_media"):
@@ -198,12 +205,17 @@ async def admin_add_greeting_media_not_media_group(message: Message, bot: Bot, u
         if message.photo is not None:
             photo = message.photo[-1]
 
-        media = photo or message.video
+        media = photo or message.video or message.document
         if not media and not message.text.startswith("/no_media"):  # type: ignore
-            await message.answer("Отправьте фото/видео!")
+            await message.answer("Отправьте фото, видео или документ!")
             return
 
-        media_type = MediaDataType.IMAGE if photo else MediaDataType.VIDEO
+        if photo:
+            media_type = MediaDataType.IMAGE
+        elif message.document:
+            media_type = MediaDataType.DOCUMENT
+        else:
+            media_type = MediaDataType.VIDEO
 
         data = await bot.download(media.file_id)  # type: ignore
         data_bytes = data.read()  # type: ignore
@@ -212,7 +224,7 @@ async def admin_add_greeting_media_not_media_group(message: Message, bot: Bot, u
 
     state_data = await state.get_data()
     if state_data.get("caption", None) and len(media_files) == 0:
-        await message.answer(f"Если в сообщении нету текста, там обязательно должны быть фотографии/видео")
+        await message.answer(f"Если в сообщении нету текста, там обязательно должны быть фотографии, видео или документ")
         return
 
     greeting = Greeting(caption=state_data.get("caption", None), media_files=media_files)
