@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     mongo_url: Annotated[str, MongoDsn]
     mongo_db_name: str
     bot_token: str
+    show_credits: bool = True
 
 
 settings = Settings()  # type: ignore[call-arg]

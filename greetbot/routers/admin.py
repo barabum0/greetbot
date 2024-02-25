@@ -9,6 +9,7 @@ from greetbot.services.fsm_states import AddGreeting
 from greetbot.services.middlewares.user import UserDBMiddleware
 from greetbot.types.bot_config import Greeting, MediaFile, MediaDataType
 from greetbot.types.extra.file import Base64File
+from greetbot.types.settings import settings
 from greetbot.types.user import User
 
 router = Router(name="User")
@@ -22,7 +23,8 @@ async def admin_start(message: Message, bot: Bot, user_db: User, state: FSMConte
 
     if not menu_only:
         await message.answer("Здравствуйте! Вы попали в меню редактирования приветствий.")
-        await message.answer("<i>bot created by @barabumbum</i>")
+        if settings.show_credits:
+            await message.answer("<i>bot created by @barabumbum</i>")
 
     keyboard_buttons: list[list[InlineKeyboardButton]] = [
         [InlineKeyboardButton(text="🛠️ Настроить приветствия", callback_data="edit_greetings")]
