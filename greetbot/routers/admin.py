@@ -52,7 +52,7 @@ async def admin_try_greeting(call: CallbackQuery, bot: Bot, user_db: User, state
     # TODO: сделать более простой метод + защиту от ошибок
     greetings = await Greeting.find(Greeting.is_enabled == True).to_list()
     for greeting in greetings:
-        await greeting.send_as_aiogram_message(bot, user_db.id)
+        await greeting.send_as_aiogram_message(bot, user_db.id, call.from_user)
 
     await admin_start(call.message, bot, user_db, state, menu_only=True)
 
@@ -149,8 +149,8 @@ async def admin_add_greeting_name(message: Message, bot: Bot, user_db: User, sta
     data = {
         "caption": message.html_text if not message.text.startswith("/no_caption") else None  # type: ignore
     }
-    await state.set_data(data)
     await state.set_state(AddGreeting.awaiting_media)
+    await state.set_data(data)
 
 
 @router.message(AddGreeting.awaiting_media, (~F.text & F.media_group_id))
@@ -173,6 +173,7 @@ async def admin_add_greeting_media(messages: list[Message], bot: Bot, user_db: U
             media_files.append(MediaFile(data_type=MediaDataType.DOCUMENT, base64=Base64File.from_bytes(data_bytes), file_name=message.document.file_name or "file.txt"))
 
     state_data = await state.get_data()
+    logger.debug(state_data)
     if state_data.get("caption", None) is None and len(media_files) == 0:
         await messages[-1].answer(f"Если в сообщении нету текста, там обязательно должны быть фотографии, видео или документ")
         return
@@ -180,7 +181,7 @@ async def admin_add_greeting_media(messages: list[Message], bot: Bot, user_db: U
     greeting = Greeting(caption=state_data.get("caption", None), media_files=media_files)
 
     await messages[-1].answer(f"Отлично! Вот ваше новое приветствие:")
-    await greeting.send_as_aiogram_message(bot, messages[-1].chat.id)
+    await greeting.send_as_aiogram_message(bot, messages[-1].chat.id, messages[-1].from_user)
 
     state_data = {"greeting": greeting}
     await state.set_data(state_data)
@@ -196,13 +197,16 @@ async def admin_add_greeting_media(messages: list[Message], bot: Bot, user_db: U
 @router.message(AddGreeting.awaiting_media)
 async def admin_add_greeting_media_not_media_group(message: Message, bot: Bot, user_db: User, state: FSMContext) -> None:
     logger.info("Caught a single message")
-    if message.text and not message.text.startswith("/no_media"):
-        await message.answer("Отправьте фото, видео или документ!")
-        return
+    if message.text is not None:
+        if not message.text.startswith("/no_media"):
+            await message.answer("Отправьте фото, видео или документ!")
+            return
+        logger.info("Caught a /no_media")
 
-    if message.text and message.text.startswith("/no_media"):
-        media_files = []
-    else:
+    media_files = []
+    if message.text is not None and message.text.startswith("/no_media"):
+        pass
+    elif message.text is None:
         photo = None
         if message.photo is not None:
             photo = message.photo[-1]
@@ -226,17 +230,18 @@ async def admin_add_greeting_media_not_media_group(message: Message, bot: Bot, u
         if message.document:
             media_file.file_name = message.document.file_name or "file.txt"
 
-        media_files = [media_file]
+        media_files.append(media_file)
 
     state_data = await state.get_data()
-    if state_data.get("caption", None) and len(media_files) == 0:
+    logger.debug(state_data)
+    if state_data.get("caption", None) is None and len(media_files) == 0:
         await message.answer(f"Если в сообщении нету текста, там обязательно должны быть фотографии, видео или документ")
         return
 
     greeting = Greeting(caption=state_data.get("caption", None), media_files=media_files)
 
     await message.answer(f"Отлично! Вот ваше новое приветствие:")
-    await greeting.send_as_aiogram_message(bot, message.chat.id)
+    await greeting.send_as_aiogram_message(bot, message.chat.id, message.from_user)
 
     state_data = {"greeting": greeting}
     await state.set_data(state_data)
@@ -255,7 +260,7 @@ async def admin_add_greeting_media_not_media_group(message: Message, bot: Bot, u
 @router.callback_query(F.data == "save_greeting")
 async def admin_save_greeting(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
     state_data = await state.get_data()
-    if greeting := state_data.get("greeting", None):
+    if (greeting := state_data.get("greeting", None)) is not None:
         await greeting.insert()
 
     await call.message.delete()  # type: ignore

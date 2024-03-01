@@ -5,11 +5,12 @@ from enum import StrEnum
 from html import escape
 
 from aiogram import Bot
-from aiogram.types import BufferedInputFile
+from aiogram.types import BufferedInputFile, User
 from aiogram.utils.media_group import MediaGroupBuilder
 from beanie import Document
 from pydantic import BaseModel, Field
 
+from greetbot.services.placeholders import apply_user_info
 from greetbot.types.extra.file import Base64File
 from greetbot.types.settings import settings
 
@@ -36,12 +37,12 @@ class Greeting(Document):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    async def send_as_aiogram_message(self, bot: Bot, chat_id: int) -> None:
+    async def send_as_aiogram_message(self, bot: Bot, chat_id: int, user: User) -> None:
         if len(self.media_files) == 0 and self.caption is not None:
-            await bot.send_message(chat_id=chat_id, text=self.caption)
+            await bot.send_message(chat_id=chat_id, text=apply_user_info(user, self.caption))
             return
         elif len(self.media_files) > 0:
-            media_group = MediaGroupBuilder(caption=self.caption)
+            media_group = MediaGroupBuilder(caption=apply_user_info(user, self.caption))
             for media in self.media_files:
                 file = BufferedInputFile(file=media.base64.to_bytes(), filename=media.file_name or "file")
 

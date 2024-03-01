@@ -19,6 +19,6 @@ async def chat_join(request: ChatJoinRequest, bot: Bot):
     greetings = await Greeting.find(Greeting.is_enabled == True).to_list()
     for greeting in greetings:
         try:
-            await greeting.send_as_aiogram_message(bot, request.from_user.id)
+            await greeting.send_as_aiogram_message(bot, request.from_user.id, request.from_user)
         except:
             pass
