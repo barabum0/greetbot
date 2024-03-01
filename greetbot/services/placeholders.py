@@ -13,5 +13,5 @@ def apply_user_info(user: User, text: str | None) -> str | None:
         "last_name": user.last_name
     }
     for key, value in placeholders.items():
-        text = text.replace("{{ " + key + " }}", value)
+        text = text.replace("{{ " + str(key) + " }}", str(value))
     return text
