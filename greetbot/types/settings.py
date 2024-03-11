@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     mongo_db_name: str
     bot_token: str
     show_credits: bool = True
+    require_request_confirmation: bool = False
+    request_confirmation_message_text: str = "Вступить в канал {{ channel_name }}?"
+    request_confirmation_button_text: str = "✅ Вступить"
 
 
 settings = Settings()  # type: ignore[call-arg]
