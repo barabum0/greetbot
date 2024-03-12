@@ -22,18 +22,6 @@ class Greeting(DatabaseMessage, Document):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    async def send_as_aiogram_message(self, bot: Bot, chat_id: int, user: User) -> None:
-        if len(self.media_files) == 0 and self.caption is not None:
-            await bot.send_message(chat_id=chat_id, text=apply_user_info(user, self.caption) or "")
-            return
-        elif len(self.media_files) > 0:
-            media_group = MediaGroupBuilder(caption=apply_user_info(user, self.caption))
-            for media in self.media_files:
-                file = BufferedInputFile(file=media.base64.to_bytes(), filename=media.file_name or "file")
-
-                media_group.add(type=media.data_type.value, media=file, has_spoiler=media.in_spoiler)  # type: ignore
-
-            await bot.send_media_group(chat_id, media=media_group.build())
 
     @property
     def settings_report(self) -> str:
