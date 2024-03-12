@@ -2,7 +2,7 @@ from aiogram import Router, Bot, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ChatJoinRequest, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
-from greetbot.types.bot_config import Greeting
+from greetbot.types.greeting import Greeting
 from greetbot.types.settings import settings
 from greetbot.types.user import User
 

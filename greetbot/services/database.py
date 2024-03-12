@@ -1,7 +1,7 @@
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from greetbot.types.bot_config import Greeting
+from greetbot.types.greeting import Greeting
 from greetbot.types.settings import settings
 from greetbot.types.user import User
 
