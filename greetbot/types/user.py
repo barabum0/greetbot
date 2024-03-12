@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from beanie import Document
+from beanie import Document, PydanticObjectId
 from pydantic import Field
 
 
@@ -9,6 +9,8 @@ class User(Document):
     is_blocked: bool = False
     is_admin: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    survey_answers: dict[PydanticObjectId, str] = {}
 
     class Settings:
         name = "users"
