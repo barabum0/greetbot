@@ -155,12 +155,17 @@ async def admin_make_a_survey(call: CallbackQuery, bot: Bot, user_db: User, stat
 @router.message(Survey.awaiting_variants, F.text)
 async def admin_make_a_survey_variants(message: Message, bot: Bot, user_db: User,
                                        state: FSMContext) -> None:
+    variants = message.text.split("\n")
+
+    if any(len(v) >= 20 for v in variants):
+        await message.answer("Длина одного варианта ответа должна быть не более 20 символов")
+        return
+
     data = await state.get_data()
     greeting = await Greeting.get(data.get("greeting_id"))
     if not greeting:
         return
 
-    variants = message.text.split("\n")
     greeting.survey_answer_variants = [AnswerVariant(answer_text=v) for v in variants]
     greeting.is_survey = True
     await greeting.save()
