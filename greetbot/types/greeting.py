@@ -39,7 +39,7 @@ class Greeting(Document):
 
     async def send_as_aiogram_message(self, bot: Bot, chat_id: int, user: User) -> None:
         if len(self.media_files) == 0 and self.caption is not None:
-            await bot.send_message(chat_id=chat_id, text=apply_user_info(user, self.caption))
+            await bot.send_message(chat_id=chat_id, text=apply_user_info(user, self.caption) or "")
             return
         elif len(self.media_files) > 0:
             media_group = MediaGroupBuilder(caption=apply_user_info(user, self.caption))
