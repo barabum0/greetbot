@@ -13,6 +13,7 @@ from greetbot.types.greeting import Greeting
 from greetbot.types.extra.file import Base64File
 from greetbot.types.media import MediaFile, MediaDataType
 from greetbot.types.settings import settings
+from greetbot.types.survey import AnswerVariant
 from greetbot.types.user import User
 
 router = Router(name="User")
@@ -55,7 +56,7 @@ async def admin_try_greeting(call: CallbackQuery, bot: Bot, user_db: User, state
     # TODO: сделать более простой метод + защиту от ошибок
     greetings = await Greeting.find(Greeting.is_enabled == True).to_list()
     for greeting in greetings:
-        await greeting.send_as_aiogram_message(bot, user_db.id, call.from_user)
+        await greeting.send_as_aiogram_message(bot, user_db.id, call.from_user, test_case=True)
 
     await admin_start(call.message, bot, user_db, state, menu_only=True)
 
@@ -143,8 +144,27 @@ async def admin_make_a_survey(call: CallbackQuery, bot: Bot, user_db: User, stat
 
     await call.message.delete()
     await call.message.answer(Text(f"Пришлите варианты ответа для вашего будущего опроса в подобном формате:\n",
-                                   Pre('Я новичек\nЯ бывалый\nЯ мамкин криптоинвестор со стажем', language='опрос')).as_html())
+                                   Pre('Я новичек\nЯ бывалый\nЯ мамкин криптоинвестор со стажем',
+                                       language='опрос')).as_html())
+
+    state_data = {"greeting_id": greeting.id}
+    await state.set_data(state_data)
     await state.set_state(Survey.awaiting_variants)
+
+
+@router.message(Survey.awaiting_variants, F.text)
+async def admin_make_a_survey_variants(message: Message, bot: Bot, user_db: User,
+                                       state: FSMContext) -> None:
+    data = await state.get_data()
+    greeting = await Greeting.get(data.get("greeting_id"))
+    if not greeting:
+        return
+
+    variants = message.text.split("\n")
+    greeting.survey_answer_variants = [AnswerVariant(answer_text=v) for v in variants]
+    await greeting.save()
+    await greeting.send_as_aiogram_message(bot, user_db.id, message.from_user, test_case=True)
+    await admin_start(message, bot, user_db, state, menu_only=True)
 
 
 @router.callback_query(F.data == "add_greeting")

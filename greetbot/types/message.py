@@ -1,6 +1,6 @@
 import textwrap
 from html import escape
-from typing import Self
+from typing import Self, TYPE_CHECKING
 
 from aiogram import Bot
 from aiogram.types import Message, BufferedInputFile, User, InlineKeyboardButton, InlineKeyboardMarkup
@@ -10,7 +10,9 @@ from pydantic import BaseModel
 from greetbot.services.placeholders import apply_user_info
 from greetbot.types.extra.file import Base64File
 from greetbot.types.media import MediaFile, MediaDataType
-from greetbot.types.survey import AnswerVariant
+
+if TYPE_CHECKING:
+    from greetbot.types.survey import AnswerVariant
 
 
 class DatabaseMessage(BaseModel):
@@ -46,7 +48,7 @@ class DatabaseMessage(BaseModel):
         reply_markup: InlineKeyboardMarkup | None = None
         if hasattr(self, "is_survey") and hasattr(self, "survey_answer_variants") and hasattr(self,
                                                                                               "id") and self.is_survey is True:
-            self.survey_answer_variants: list[AnswerVariant]
+            self.survey_answer_variants: list["AnswerVariant"]
             keyboard = [
                 [InlineKeyboardButton(text=s.answer_text,
                                       callback_data=f"survey_answer_{self.id}_{s.answer_text}" if not test_case else "pass")]
