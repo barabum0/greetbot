@@ -70,6 +70,8 @@ class DatabaseMessage(BaseModel):
             output += f"\nКол-во фотографий: {video_count}"
         if document_count > 0:
             output += f"\nКол-во документов: {document_count}"
+        if hasattr(self, "is_survey") and self.is_survey is True:
+            output += f"\nЯвляется опросом"
 
         return output.strip()
 
