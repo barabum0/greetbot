@@ -3,7 +3,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, KeyboardButton, \
     ReplyKeyboardMarkup, InaccessibleMessage
-from aiogram.utils.formatting import Pre
+from aiogram.utils.formatting import Pre, Text
 from aiogram_media_group import media_group_handler
 from loguru import logger
 
@@ -96,7 +96,7 @@ async def admin_edit_greeting(call: CallbackQuery, bot: Bot, user_db: User, stat
     ]
     if not greeting.is_survey:
         keyboard_buttons.insert(0, [InlineKeyboardButton(text=f"📊 Сделать опросом",
-                              callback_data=f"make_a_survey_{greeting.id}")])
+                                                         callback_data=f"make_a_survey_{greeting.id}")])
     else:
         keyboard_buttons.insert(0, [InlineKeyboardButton(text=f"❌ Убрать опрос",
                                                          callback_data=f"remove_survey_{greeting.id}")])
@@ -142,8 +142,8 @@ async def admin_make_a_survey(call: CallbackQuery, bot: Bot, user_db: User, stat
         return
 
     await call.message.delete()
-    await call.message.answer(f"Пришлите варианты ответа для вашего будущего опроса в подобном формате:\n"
-                              f"{Pre('Я новичек\nЯ бывалый\nЯ мамкин криптоинвестор со стажем', 'survey')}")
+    await call.message.answer(Text(f"Пришлите варианты ответа для вашего будущего опроса в подобном формате:\n"
+                                   f"{Pre('Я новичек\nЯ бывалый\nЯ мамкин криптоинвестор со стажем', 'survey')}").as_html())
     await state.set_state(Survey.awaiting_variants)
 
 
@@ -181,7 +181,8 @@ async def admin_add_message_media_group(messages: list[Message], bot: Bot, user_
 
 
 @router.message(AddGreeting.awaiting_message)
-async def admin_add_greeting_media_not_media_group(message: Message, bot: Bot, user_db: User, state: FSMContext) -> None:
+async def admin_add_greeting_media_not_media_group(message: Message, bot: Bot, user_db: User,
+                                                   state: FSMContext) -> None:
     await process_add_greeting([message], bot, user_db, state)
 
 
