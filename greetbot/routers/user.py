@@ -47,3 +47,16 @@ async def accept_request(call: CallbackQuery, bot: Bot, state: FSMContext):
             await greeting.send_as_aiogram_message(bot, call.from_user.id, call.from_user)
         except:
             pass
+
+
+@router.callback_query(F.data.startswith("survey_answer_"))
+async def survey_answer(call: CallbackQuery, bot: Bot, state: FSMContext, user_db: User):
+    _, _, greeting_id, answer_text = call.data.split("_", maxsplit=4)  # type: ignore
+
+    greeting = await Greeting.get(greeting_id)
+    if not greeting:
+        await call.message.delete()
+        return
+
+    await call.message.delete()
+    user_db.survey_answers[greeting.id] = answer_text
