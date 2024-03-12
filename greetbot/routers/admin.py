@@ -117,6 +117,18 @@ async def admin_delete_greeting(call: CallbackQuery, bot: Bot, user_db: User, st
     await admin_start(call.message, bot, user_db, state)
 
 
+@router.callback_query(F.data.startswith("remove_survey_"))
+async def admin_remove_survey(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
+    *_, greeting_id = call.data.split("_")  # type: ignore
+    greeting = await Greeting.get(greeting_id)
+    if not greeting:
+        return
+
+    greeting.survey_answer_variants = []
+    greeting.is_survey = False
+    await greeting.save()
+
+
 @router.callback_query(F.data == "add_greeting")
 async def admin_add_greeting(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
     await state.set_state(AddGreeting.awaiting_message)
