@@ -94,10 +94,10 @@ async def admin_edit_greeting(call: CallbackQuery, bot: Bot, user_db: User, stat
                               callback_data=f"delete_greeting_{greeting.id}")],
         [InlineKeyboardButton(text=f"↩️ Назад", callback_data=f"back_to_start")]
     ]
-    if not greeting.is_survey:
+    if not greeting.is_survey and len(greeting.survey_answer_variants) == 0:
         keyboard_buttons.insert(0, [InlineKeyboardButton(text=f"📊 Сделать опросом",
                                                          callback_data=f"make_a_survey_{greeting.id}")])
-    else:
+    elif greeting.is_survey:
         keyboard_buttons.insert(0, [InlineKeyboardButton(text=f"❌ Убрать опрос",
                                                          callback_data=f"remove_survey_{greeting.id}")])
 
