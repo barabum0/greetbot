@@ -36,11 +36,11 @@ async def chat_join(request: ChatJoinRequest, bot: Bot, state: FSMContext):
 async def accept_request(call: CallbackQuery, bot: Bot, state: FSMContext):
     *_, chat_id = call.data.split("_")  # type: ignore
 
-    # TODO: сделать более простой метод + защиту от ошибок
-    greetings = await Greeting.find(Greeting.is_enabled == True).to_list()
-
     await bot.approve_chat_join_request(chat_id, call.from_user.id)
     await call.message.delete()  # type: ignore
+
+    # TODO: сделать более простой метод + защиту от ошибок
+    greetings = await Greeting.find(Greeting.is_enabled == True).to_list()
 
     for greeting in greetings:
         try:
