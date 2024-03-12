@@ -3,10 +3,11 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, KeyboardButton, \
     ReplyKeyboardMarkup, InaccessibleMessage
+from aiogram.utils.formatting import Pre
 from aiogram_media_group import media_group_handler
 from loguru import logger
 
-from greetbot.services.fsm_states import AddGreeting
+from greetbot.services.fsm_states import AddGreeting, Survey
 from greetbot.services.middlewares.user import UserDBMiddleware
 from greetbot.types.greeting import Greeting
 from greetbot.types.extra.file import Base64File
@@ -128,6 +129,22 @@ async def admin_remove_survey(call: CallbackQuery, bot: Bot, user_db: User, stat
     greeting.is_survey = False
     await greeting.save()
     await admin_edit_greeting(call, bot, user_db, state)
+
+
+@router.callback_query(F.data.startswith("make_a_survey_"))
+async def admin_make_a_survey(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
+    *_, greeting_id = call.data.split("_")  # type: ignore
+    greeting = await Greeting.get(greeting_id)
+    if not greeting:
+        return
+
+    if call.message is None or isinstance(call.message, InaccessibleMessage):
+        return
+
+    await call.message.delete()
+    await call.message.answer(f"Пришлите варианты ответа для вашего будущего опроса в подобном формате:\n"
+                              f"{Pre('Я новичек\nЯ бывалый\nЯ мамкин криптоинвестор со стажем', 'survey')}")
+    await state.set_state(Survey.awaiting_variants)
 
 
 @router.callback_query(F.data == "add_greeting")
