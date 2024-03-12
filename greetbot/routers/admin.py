@@ -162,6 +162,7 @@ async def admin_make_a_survey_variants(message: Message, bot: Bot, user_db: User
 
     variants = message.text.split("\n")
     greeting.survey_answer_variants = [AnswerVariant(answer_text=v) for v in variants]
+    greeting.is_survey = True
     await greeting.save()
     await greeting.send_as_aiogram_message(bot, user_db.id, message.from_user, test_case=True)
     await admin_start(message, bot, user_db, state, menu_only=True)
