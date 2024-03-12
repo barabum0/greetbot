@@ -1,8 +1,9 @@
 from aiogram import Router, Bot, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, KeyboardButton, ReplyKeyboardMarkup
-from aiogram_media_group import media_group_handler, MediaGroupFilter
+from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, KeyboardButton, \
+    ReplyKeyboardMarkup, InaccessibleMessage
+from aiogram_media_group import media_group_handler
 from loguru import logger
 
 from greetbot.services.fsm_states import AddGreeting
@@ -111,76 +112,19 @@ async def admin_delete_greeting(call: CallbackQuery, bot: Bot, user_db: User, st
 
 @router.callback_query(F.data == "add_greeting")
 async def admin_add_greeting(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
-    await state.set_state(AddGreeting.awaiting_caption)
-    # TODO: парсинг сообщений напрямую
-    buttons: list[list[KeyboardButton]] = [
-        [KeyboardButton(text="/no_caption")]
-    ]
-    await call.message.delete()  # type: ignore
-    await call.message.answer(  # type: ignore
-        f"Введите текст вашего будущего приветствие"
-        f"\n<i><code>/no_caption</code> чтобы текста не было</i>",
-        reply_markup=ReplyKeyboardMarkup(keyboard=buttons, one_time_keyboard=True)
-    )
+    await state.set_state(AddGreeting.awaiting_message)
 
-
-@router.message(AddGreeting.awaiting_caption)
-async def admin_add_greeting_name(message: Message, bot: Bot, user_db: User, state: FSMContext) -> None:
-    if any((
-            not message.text,
-            message.caption is not None,
-            message.photo is not None,
-            message.video is not None,
-            message.document is not None
-    )):
-        await message.delete()
-        await message.answer(f"Отправьте только текст")
+    if call.message is None or isinstance(call.message, InaccessibleMessage):
         return
 
-    buttons: list[list[KeyboardButton]] = [
-        [KeyboardButton(text="/no_media")]
-    ]
-
-    await message.answer(
-        f"Теперь отправьте нужные фото, документы и видео <b>одним сообщением</b>"
-        f"\n<i>текст, аудио и всё, кроме видео, документов и изображений будет игнорироваться</i>"
-        f"\n<i><code>/no_media</code> для того, чтобы медиа не было</i>",
-        reply_markup=ReplyKeyboardMarkup(keyboard=buttons, one_time_keyboard=True)
-    )
-    data = {
-        "caption": message.html_text if not message.text.startswith("/no_caption") else None  # type: ignore
-    }
-    await state.set_state(AddGreeting.awaiting_media)
-    await state.set_data(data)
+    await call.message.delete()
+    await call.message.answer(f"Пришлите ваше будущее приветствие. Это может быть текст, фото, видео и документы.")
 
 
-@router.message(AddGreeting.awaiting_media, (~F.text & F.media_group_id))
+@router.message(AddGreeting.awaiting_message, F.media_group_id)
 @media_group_handler
-async def admin_add_greeting_media(messages: list[Message], bot: Bot, user_db: User, state: FSMContext) -> None:
-    logger.info("Caught a media group")
-    media_files: list[MediaFile] = []
-    for message in messages:
-        if message.photo is not None:
-            data = await bot.download(message.photo[-1].file_id)
-            data_bytes = data.read()  # type: ignore
-            media_files.append(MediaFile(data_type=MediaDataType.IMAGE, base64=Base64File.from_bytes(data_bytes)))
-        elif message.video is not None:
-            data = await bot.download(message.video.file_id)
-            data_bytes = data.read()  # type: ignore
-            media_files.append(MediaFile(data_type=MediaDataType.VIDEO, base64=Base64File.from_bytes(data_bytes)))
-        elif message.document is not None:
-            data = await bot.download(message.document.file_id)
-            data_bytes = data.read()  # type: ignore
-            media_files.append(MediaFile(data_type=MediaDataType.DOCUMENT, base64=Base64File.from_bytes(data_bytes), file_name=message.document.file_name or "file.txt"))
-
-    state_data = await state.get_data()
-    logger.debug(state_data)
-    if state_data.get("caption", None) is None and len(media_files) == 0:
-        await messages[-1].answer(f"Если в сообщении нету текста, там обязательно должны быть фотографии, видео или документ")
-        return
-
-    greeting = Greeting(caption=state_data.get("caption", None), media_files=media_files)
-
+async def admin_add_message_media_group(messages: list[Message], bot: Bot, user_db: User, state: FSMContext) -> None:
+    greeting = await Greeting.from_messages(messages, bot)
     await messages[-1].answer(f"Отлично! Вот ваше новое приветствие:")
     await greeting.send_as_aiogram_message(bot, messages[-1].chat.id, messages[-1].from_user)
 
@@ -191,71 +135,13 @@ async def admin_add_greeting_media(messages: list[Message], bot: Bot, user_db: U
         [InlineKeyboardButton(text="✅ Сохранить", callback_data="save_greeting")],
         [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_greeting")]
     ]
-    await messages[-1].answer(f"<b>Как вам?</b>", reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard_buttons))
+    await messages[-1].answer(f"<b>Cохраняем?</b>", reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard_buttons))
     await state.set_state()
 
 
-@router.message(AddGreeting.awaiting_media)
+@router.message(AddGreeting.awaiting_message)
 async def admin_add_greeting_media_not_media_group(message: Message, bot: Bot, user_db: User, state: FSMContext) -> None:
-    logger.info("Caught a single message")
-    if message.text is not None:
-        if not message.text.startswith("/no_media"):
-            await message.answer("Отправьте фото, видео или документ!")
-            return
-        logger.info("Caught a /no_media")
-
-    media_files = []
-    if message.text is not None and message.text.startswith("/no_media"):
-        pass
-    elif message.text is None:
-        photo = None
-        if message.photo is not None:
-            photo = message.photo[-1]
-
-        media = photo or message.video or message.document
-        if not media and not message.text.startswith("/no_media"):  # type: ignore
-            await message.answer("Отправьте фото, видео или документ!")
-            return
-
-        if photo:
-            media_type = MediaDataType.IMAGE
-        elif message.document:
-            media_type = MediaDataType.DOCUMENT
-        else:
-            media_type = MediaDataType.VIDEO
-
-        data = await bot.download(media.file_id)  # type: ignore
-        data_bytes = data.read()  # type: ignore
-        media_file = MediaFile(data_type=media_type, base64=Base64File.from_bytes(data_bytes))
-
-        if message.document:
-            media_file.file_name = message.document.file_name or "file.txt"
-
-        media_files.append(media_file)
-
-    state_data = await state.get_data()
-    logger.debug(state_data)
-    if state_data.get("caption", None) is None and len(media_files) == 0:
-        await message.answer(f"Если в сообщении нету текста, там обязательно должны быть фотографии, видео или документ")
-        return
-
-    greeting = Greeting(caption=state_data.get("caption", None), media_files=media_files)
-
-    await message.answer(f"Отлично! Вот ваше новое приветствие:")
-    await greeting.send_as_aiogram_message(bot, message.chat.id, message.from_user)
-
-    state_data = {"greeting": greeting}
-    await state.set_data(state_data)
-
-    keyboard_buttons: list[list[InlineKeyboardButton]] = [
-        [InlineKeyboardButton(text="✅ Сохранить", callback_data="save_greeting")],
-        [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_greeting")]
-    ]
-    await message.answer(f"<b>Как вам?</b>",
-                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard_buttons))
-    await state.set_state()
-    return
-
+    await admin_add_message_media_group([message], bot, user_db, state)
 
 
 @router.callback_query(F.data == "save_greeting")
