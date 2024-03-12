@@ -7,8 +7,9 @@ from loguru import logger
 
 from greetbot.services.fsm_states import AddGreeting
 from greetbot.services.middlewares.user import UserDBMiddleware
-from greetbot.types.greeting import Greeting, MediaFile, MediaDataType
+from greetbot.types.greeting import Greeting
 from greetbot.types.extra.file import Base64File
+from greetbot.types.media import MediaFile, MediaDataType
 from greetbot.types.settings import settings
 from greetbot.types.user import User
 

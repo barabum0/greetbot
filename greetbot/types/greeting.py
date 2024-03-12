@@ -1,37 +1,22 @@
 import asyncio
 import textwrap
 from datetime import datetime
-from enum import StrEnum
 from html import escape
 
 from aiogram import Bot
 from aiogram.types import BufferedInputFile, User
 from aiogram.utils.media_group import MediaGroupBuilder
 from beanie import Document
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from greetbot.services.placeholders import apply_user_info
 from greetbot.types.extra.file import Base64File
+from greetbot.types.media import MediaDataType
+from greetbot.types.message import DatabaseMessage
 from greetbot.types.settings import settings
 
 
-class MediaDataType(StrEnum):
-    IMAGE = "photo"
-    VIDEO = "video"
-    DOCUMENT = "document"
-
-
-class MediaFile(BaseModel):
-    data_type: MediaDataType
-    base64: Base64File
-    in_spoiler: bool = False
-    file_name: str | None = None
-
-
-class Greeting(Document):
-    caption: str | None = None
-    media_files: list[MediaFile]
-
+class Greeting(DatabaseMessage, Document):
     is_enabled: bool = True
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
