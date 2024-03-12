@@ -1,3 +1,5 @@
+import textwrap
+from html import escape
 from typing import Self
 
 from aiogram import Bot
@@ -51,3 +53,23 @@ class DatabaseMessage(BaseModel):
                 media_group.add(type=media.data_type.value, media=file, has_spoiler=media.in_spoiler)  # type: ignore
 
             await bot.send_media_group(chat_id, media=media_group.build())
+
+    @property
+    def settings_report(self) -> str:
+        output = ""
+        if self.caption:
+            output += f"Текст: {escape(textwrap.shorten(self.caption.strip(), width=20, placeholder='...'), quote=False)}"
+
+        photo_count = sum(1 for m in self.media_files if m.data_type is MediaDataType.IMAGE)
+        video_count = sum(1 for m in self.media_files if m.data_type is MediaDataType.VIDEO)
+        document_count = sum(1 for m in self.media_files if m.data_type is MediaDataType.DOCUMENT)
+
+        if photo_count > 0:
+            output += f"\nКол-во фотографий: {photo_count}"
+        if video_count > 0:
+            output += f"\nКол-во фотографий: {video_count}"
+        if document_count > 0:
+            output += f"\nКол-во документов: {document_count}"
+
+        return output.strip()
+
