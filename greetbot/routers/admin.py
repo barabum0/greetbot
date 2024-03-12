@@ -127,6 +127,7 @@ async def admin_remove_survey(call: CallbackQuery, bot: Bot, user_db: User, stat
     greeting.survey_answer_variants = []
     greeting.is_survey = False
     await greeting.save()
+    await admin_edit_greeting(call, bot, user_db, state)
 
 
 @router.callback_query(F.data == "add_greeting")
