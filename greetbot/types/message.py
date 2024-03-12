@@ -3,13 +3,14 @@ from html import escape
 from typing import Self
 
 from aiogram import Bot
-from aiogram.types import Message, BufferedInputFile, User
+from aiogram.types import Message, BufferedInputFile, User, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.media_group import MediaGroupBuilder
 from pydantic import BaseModel
 
 from greetbot.services.placeholders import apply_user_info
 from greetbot.types.extra.file import Base64File
 from greetbot.types.media import MediaFile, MediaDataType
+from greetbot.types.survey import AnswerVariant
 
 
 class DatabaseMessage(BaseModel):
@@ -41,9 +42,21 @@ class DatabaseMessage(BaseModel):
 
         return cls(caption=caption, media_files=media_files)
 
-    async def send_as_aiogram_message(self, bot: Bot, chat_id: int, user: User) -> None:
+    async def send_as_aiogram_message(self, bot: Bot, chat_id: int, user: User, test_case: bool = False) -> None:
+        reply_markup: InlineKeyboardMarkup | None = None
+        if hasattr(self, "is_survey") and hasattr(self, "survey_answer_variants") and hasattr(self,
+                                                                                              "id") and self.is_survey is True:
+            self.survey_answer_variants: list[AnswerVariant]
+            keyboard = [
+                [InlineKeyboardButton(text=s.answer_text,
+                                      callback_data=f"survey_answer_{self.id}_{s.answer_text}" if not test_case else "pass")]
+                for s in self.survey_answer_variants
+            ]
+            reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+
         if len(self.media_files) == 0 and self.caption is not None:
-            await bot.send_message(chat_id=chat_id, text=apply_user_info(user, self.caption) or "")
+            await bot.send_message(chat_id=chat_id, text=apply_user_info(user, self.caption) or "",
+                                   reply_markup=reply_markup)
             return
         elif len(self.media_files) > 0:
             media_group = MediaGroupBuilder(caption=apply_user_info(user, self.caption))
@@ -74,4 +87,3 @@ class DatabaseMessage(BaseModel):
             output += f"\nЯвляется опросом"
 
         return output.strip()
-
