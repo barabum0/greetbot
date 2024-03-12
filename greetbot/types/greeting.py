@@ -4,6 +4,7 @@ from beanie import Document
 from pydantic import Field
 
 from greetbot.types.message import DatabaseMessage
+from greetbot.types.survey import AnswerVariant
 
 
 class Greeting(DatabaseMessage, Document):
@@ -11,6 +12,9 @@ class Greeting(DatabaseMessage, Document):
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    is_survey: bool = True
+    survey_answer_variants: list[AnswerVariant] = []
 
     class Settings:
         name = "greeting_messages"
