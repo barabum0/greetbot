@@ -121,9 +121,7 @@ async def admin_add_greeting(call: CallbackQuery, bot: Bot, user_db: User, state
     await call.message.answer(f"Пришлите ваше будущее приветствие. Это может быть текст, фото, видео и документы.")
 
 
-@router.message(AddGreeting.awaiting_message, F.media_group_id)
-@media_group_handler
-async def admin_add_message_media_group(messages: list[Message], bot: Bot, user_db: User, state: FSMContext) -> None:
+async def process_add_greeting(messages: list[Message], bot: Bot, user_db: User, state: FSMContext) -> None:
     greeting = await Greeting.from_messages(messages, bot)
     await messages[-1].answer(f"Отлично! Вот ваше новое приветствие:")
     await greeting.send_as_aiogram_message(bot, messages[-1].chat.id, messages[-1].from_user)
@@ -133,15 +131,21 @@ async def admin_add_message_media_group(messages: list[Message], bot: Bot, user_
 
     keyboard_buttons: list[list[InlineKeyboardButton]] = [
         [InlineKeyboardButton(text="✅ Сохранить", callback_data="save_greeting")],
-        [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel_greeting")]
+        [InlineKeyboardButton(text="❌ Отменить", callback_data="back_to_start")]
     ]
     await messages[-1].answer(f"<b>Cохраняем?</b>", reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard_buttons))
     await state.set_state()
 
 
+@router.message(AddGreeting.awaiting_message, F.media_group_id)
+@media_group_handler
+async def admin_add_message_media_group(messages: list[Message], bot: Bot, user_db: User, state: FSMContext) -> None:
+    await process_add_greeting(messages, bot, user_db, state)
+
+
 @router.message(AddGreeting.awaiting_message)
 async def admin_add_greeting_media_not_media_group(message: Message, bot: Bot, user_db: User, state: FSMContext) -> None:
-    await admin_add_message_media_group([message], bot, user_db, state)
+    await process_add_greeting([message], bot, user_db, state)
 
 
 @router.callback_query(F.data == "save_greeting")
