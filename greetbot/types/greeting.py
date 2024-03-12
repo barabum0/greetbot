@@ -13,7 +13,7 @@ class Greeting(DatabaseMessage, Document):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    is_survey: bool = True
+    is_survey: bool = False
     survey_answer_variants: list[AnswerVariant] = []
 
     class Settings:
