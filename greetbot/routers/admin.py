@@ -142,8 +142,8 @@ async def admin_make_a_survey(call: CallbackQuery, bot: Bot, user_db: User, stat
         return
 
     await call.message.delete()
-    await call.message.answer(Text(f"Пришлите варианты ответа для вашего будущего опроса в подобном формате:\n"
-                                   f"{Pre('Я новичек\nЯ бывалый\nЯ мамкин криптоинвестор со стажем', 'survey')}").as_html())
+    await call.message.answer(Text(f"Пришлите варианты ответа для вашего будущего опроса в подобном формате:\n",
+                                   Pre('Я новичек\nЯ бывалый\nЯ мамкин криптоинвестор со стажем', language='опрос')).as_html())
     await state.set_state(Survey.awaiting_variants)
 
 
