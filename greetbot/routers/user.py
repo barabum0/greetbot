@@ -2,11 +2,14 @@ from aiogram import Router, Bot, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ChatJoinRequest, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
+from greetbot.services.middlewares.user import UserDBMiddleware
 from greetbot.types.greeting import Greeting
 from greetbot.types.settings import settings
 from greetbot.types.user import User
 
 router = Router(name="User")
+router.message.middleware(UserDBMiddleware(check_admin=False))
+router.callback_query.middleware(UserDBMiddleware(check_admin=False))
 
 
 @router.chat_join_request()
@@ -65,3 +68,7 @@ async def survey_answer(call: CallbackQuery, bot: Bot, state: FSMContext, user_d
 
     await call.message.delete()
     user_db.survey_answers[greeting.id] = variant.answer_text
+    await user_db.save()
+
+    for message in variant.reply_messages:
+        await message.send_as_aiogram_message(bot, call.from_user.id, call.from_user)
