@@ -28,6 +28,8 @@ async def admin_edit_greeting(call: CallbackQuery, bot: Bot, user_db: User, stat
         keyboard_buttons.insert(0, [InlineKeyboardButton(text=f"📊 Сделать опросом",
                                                          callback_data=f"make_a_survey_{greeting.id}")])
     elif greeting.is_survey:
+        keyboard_buttons.insert(0, [InlineKeyboardButton(text=f"💬 Изменить опрос",
+                                                         callback_data=f"edit_survey_{greeting.id}")])
         keyboard_buttons.insert(0, [InlineKeyboardButton(text=f"❌ Убрать опрос",
                                                          callback_data=f"remove_survey_{greeting.id}")])
 
@@ -85,10 +87,6 @@ async def admin_make_a_survey(call: CallbackQuery, bot: Bot, user_db: User, stat
 async def admin_make_a_survey_variants(message: Message, bot: Bot, user_db: User,
                                        state: FSMContext) -> None:
     variants = message.text.split("\n")
-
-    if any(len(v) >= 20 for v in variants):
-        await message.answer("Длина одного варианта ответа должна быть не более 20 символов")
-        return
 
     data = await state.get_data()
     greeting = await Greeting.get(data.get("greeting_id"))

@@ -7,3 +7,4 @@ class AddGreeting(StatesGroup):
 
 class Survey(StatesGroup):
     awaiting_variants = State()
+    awaiting_message = State()
