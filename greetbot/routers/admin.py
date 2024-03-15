@@ -1,17 +1,13 @@
 from aiogram import Router, Bot, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, KeyboardButton, \
-    ReplyKeyboardMarkup, InaccessibleMessage
+from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, InaccessibleMessage
 from aiogram.utils.formatting import Pre, Text
 from aiogram_media_group import media_group_handler
-from loguru import logger
 
 from greetbot.services.fsm_states import AddGreeting, Survey
 from greetbot.services.middlewares.user import UserDBMiddleware
 from greetbot.types.greeting import Greeting
-from greetbot.types.extra.file import Base64File
-from greetbot.types.media import MediaFile, MediaDataType
 from greetbot.types.settings import settings
 from greetbot.types.survey import AnswerVariant
 from greetbot.types.user import User
