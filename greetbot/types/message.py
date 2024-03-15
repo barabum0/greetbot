@@ -51,7 +51,7 @@ class DatabaseMessage(BaseModel):
             self.survey_answer_variants: list["AnswerVariant"]
             keyboard = [
                 [InlineKeyboardButton(text=s.answer_text,
-                                      callback_data=f"survey_answer_{self.id}_{s.answer_text}" if not test_case else "pass")]
+                                      callback_data=f"survey_answer_{self.id}_{s.answer_id}" if not test_case else "pass")]
                 for s in self.survey_answer_variants
             ]
             reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
