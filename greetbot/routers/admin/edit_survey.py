@@ -40,10 +40,8 @@ async def admin_edit_surveys_list(call: CallbackQuery, bot: Bot, user_db: User, 
 @router.callback_query(F.data.startswith("edit_survey__"))
 async def admin_edit_survey_answer(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
     greeting_id, answer_id, *_ = call.data.split("__")[1].split("_")  # type: ignore
-    print(call.data)
     greeting = await Greeting.get(greeting_id)
     if not greeting:
-        print("no_greeting")
         return
 
     if not greeting.is_survey:
@@ -51,7 +49,6 @@ async def admin_edit_survey_answer(call: CallbackQuery, bot: Bot, user_db: User,
 
     answer = next((v for v in greeting.survey_answer_variants if v.answer_id == answer_id), None)
     if not answer:
-        print("no_answer")
         return
 
     keyboard_buttons = [
