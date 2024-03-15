@@ -25,7 +25,7 @@ async def admin_edit_surveys_list(call: CallbackQuery, bot: Bot, user_db: User, 
         return
 
     keyboard_buttons = [
-        [InlineKeyboardButton(text=v.answer_text, callback_data=f"edit_survey_{greeting.id}_{v.answer_id}")] for v in
+        [InlineKeyboardButton(text=v.answer_text, callback_data=f"edit_survey__{greeting.id}_{v.answer_id}")] for v in
         greeting.survey_answer_variants
     ]
     keyboard_buttons.append([
@@ -37,9 +37,9 @@ async def admin_edit_surveys_list(call: CallbackQuery, bot: Bot, user_db: User, 
                                  reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard_buttons))  # type: ignore
 
 
-@router.callback_query(F.data.startswith("edit_survey_"))
+@router.callback_query(F.data.startswith("edit_survey__"))
 async def admin_edit_survey_answer(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
-    *_, greeting_id, answer_id = call.data.split("_")  # type: ignore
+    greeting_id, answer_id, *_ = call.data.split("__")[1].split("_")  # type: ignore
     greeting = await Greeting.get(greeting_id)
     if not greeting:
         return
@@ -54,13 +54,13 @@ async def admin_edit_survey_answer(call: CallbackQuery, bot: Bot, user_db: User,
     keyboard_buttons = [
         [InlineKeyboardButton(
             text=f"💬 Удалить {index} 🗑️",
-            callback_data=f"remove_reply_message_{greeting.id}_{answer.answer_id}_{index}",
+            callback_data=f"remove_reply_message__{greeting.id}_{answer.answer_id}_{index}",
         )] for index, message in enumerate(answer.reply_messages)
     ]
     keyboard_buttons.append([InlineKeyboardButton(text=f"➕ Добавить сообщение после ответа",
                                                   callback_data=f"add_reply_message_{greeting.id}_{answer.answer_id}")])
     keyboard_buttons.append([InlineKeyboardButton(text=f"🤖 Попробовать сообщения после ответа",
-                                                  callback_data=f"try_reply_messages_{greeting.id}_{answer.answer_id}")])
+                                                  callback_data=f"try_reply_messages__{greeting.id}_{answer.answer_id}")])
     keyboard_buttons.append([InlineKeyboardButton(text=f"↩️ Назад", callback_data=f"back_to_start")])
 
     await call.message.edit_text(  # type: ignore
@@ -75,9 +75,9 @@ async def admin_edit_survey_answer(call: CallbackQuery, bot: Bot, user_db: User,
     )
 
 
-@router.callback_query(F.data.startswith("try_reply_messages_"))
+@router.callback_query(F.data.startswith("try_reply_messages__"))
 async def admin_try_reply_messages(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
-    *_, greeting_id, answer_id = call.data.split("_")  # type: ignore
+    greeting_id, answer_id = call.data.split("__")[1].split("_")  # type: ignore
     greeting = await Greeting.get(greeting_id)
     if not greeting:
         return
@@ -95,6 +95,25 @@ async def admin_try_reply_messages(call: CallbackQuery, bot: Bot, user_db: User,
         await reply_message.send_as_aiogram_message(bot, call.from_user.id, call.from_user, test_case=True)
 
     await admin_start(call.message, bot, user_db, state, menu_only=True)
+
+
+@router.callback_query(F.data.startswith("remove_reply_message__"))
+async def admin_remove_reply_message(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
+    greeting_id, answer_id, index = call.data.split("__")[1].split("_")  # type: ignore
+    greeting = await Greeting.get(greeting_id)
+    if not greeting:
+        return
+
+    if not greeting.is_survey:
+        return
+
+    answer = next((v for v in greeting.survey_answer_variants if v.answer_id == answer_id), None)
+    if not answer:
+        return
+    greeting.survey_answer_variants.remove(answer)
+
+    await admin_edit_survey_answer(call, bot, user_db, state)
+
 
 
 @router.callback_query(F.data.startswith("add_reply_message_"))
