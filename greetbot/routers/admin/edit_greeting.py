@@ -29,7 +29,7 @@ async def admin_edit_greeting(call: CallbackQuery, bot: Bot, user_db: User, stat
                                                          callback_data=f"make_a_survey_{greeting.id}")])
     elif greeting.is_survey:
         keyboard_buttons.insert(0, [InlineKeyboardButton(text=f"💬 Изменить опрос",
-                                                         callback_data=f"edit_survey_{greeting.id}")])
+                                                         callback_data=f"edit_surveys_list_{greeting.id}")])
         keyboard_buttons.insert(0, [InlineKeyboardButton(text=f"❌ Убрать опрос",
                                                          callback_data=f"remove_survey_{greeting.id}")])
 
