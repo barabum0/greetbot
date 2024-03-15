@@ -40,8 +40,10 @@ async def admin_edit_surveys_list(call: CallbackQuery, bot: Bot, user_db: User, 
 @router.callback_query(F.data.startswith("edit_survey__"))
 async def admin_edit_survey_answer(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
     greeting_id, answer_id, *_ = call.data.split("__")[1].split("_")  # type: ignore
+    print(call.data)
     greeting = await Greeting.get(greeting_id)
     if not greeting:
+        print("no_greeting")
         return
 
     if not greeting.is_survey:
@@ -49,6 +51,7 @@ async def admin_edit_survey_answer(call: CallbackQuery, bot: Bot, user_db: User,
 
     answer = next((v for v in greeting.survey_answer_variants if v.answer_id == answer_id), None)
     if not answer:
+        print("no_answer")
         return
 
     keyboard_buttons = [
@@ -110,7 +113,10 @@ async def admin_remove_reply_message(call: CallbackQuery, bot: Bot, user_db: Use
     answer = next((v for v in greeting.survey_answer_variants if v.answer_id == answer_id), None)
     if not answer:
         return
-    greeting.survey_answer_variants.remove(answer)
+    answer_index = greeting.survey_answer_variants.index(answer)
+    greeting.survey_answer_variants[answer_index].reply_messages.pop(index)
+
+    await greeting.save()
 
     await admin_edit_survey_answer(call, bot, user_db, state)
 
