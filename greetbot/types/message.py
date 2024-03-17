@@ -77,7 +77,7 @@ class DatabaseMessage(BaseModel):
     def settings_report(self) -> str:
         output = ""
         if self.send_delay_seconds != 0:
-            output += f"Задержка перед отправкой: {self.send_delay_seconds} секунд"
+            output += f"Задержка перед отправкой: {self.send_delay_seconds} секунд\n"
         if self.caption:
             output += f"Текст: {escape(textwrap.shorten(self.caption.strip(), width=20, placeholder='...'), quote=False)}"
 
