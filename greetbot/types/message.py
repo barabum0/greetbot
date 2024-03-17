@@ -1,3 +1,4 @@
+import asyncio
 import textwrap
 from html import escape
 from typing import Self, TYPE_CHECKING
@@ -18,6 +19,7 @@ if TYPE_CHECKING:
 class DatabaseMessage(BaseModel):
     caption: str | None = None
     media_files: list[MediaFile]
+    send_delay_seconds: int = 0
 
     @classmethod
     async def from_messages(cls, messages: list[Message], bot: Bot) -> Self:
@@ -45,6 +47,8 @@ class DatabaseMessage(BaseModel):
         return cls(caption=caption, media_files=media_files)
 
     async def send_as_aiogram_message(self, bot: Bot, chat_id: int, user: User, test_case: bool = False) -> None:
+        await asyncio.sleep(self.send_delay_seconds)
+
         reply_markup: InlineKeyboardMarkup | None = None
         if hasattr(self, "is_survey") and hasattr(self, "survey_answer_variants") and hasattr(self,
                                                                                               "id") and self.is_survey is True:
