@@ -4,7 +4,7 @@ from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, C
 from aiogram.utils.formatting import Text, Pre
 
 from greetbot.routers.admin.main_menu import admin_start
-from greetbot.services.fsm_states import Survey
+from greetbot.services.fsm_states import Survey, EditGreeting
 from greetbot.types.greeting import Greeting
 from greetbot.types.survey import AnswerVariant
 from greetbot.types.user import User
@@ -22,6 +22,7 @@ async def admin_edit_greeting(call: CallbackQuery, bot: Bot, user_db: User, stat
     keyboard_buttons: list[list[InlineKeyboardButton]] = [
         [InlineKeyboardButton(text=f"🗑️ Удалить приветствие",
                               callback_data=f"delete_greeting_{greeting.id}")],
+        [InlineKeyboardButton(text=f"⏳ Изменить задержку", callback_data=f"change_delay__{greeting.id}")],
         [InlineKeyboardButton(text=f"↩️ Назад", callback_data=f"back_to_start")]
     ]
     if not greeting.is_survey and len(greeting.media_files) == 0:
@@ -61,6 +62,37 @@ async def admin_remove_survey(call: CallbackQuery, bot: Bot, user_db: User, stat
     greeting.is_survey = False
     await greeting.save()
     await admin_edit_greeting(call, bot, user_db, state)
+
+
+@router.callback_query(F.data.startswith("change_delay__"))
+async def admin_change_delay_request(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
+    *_, greeting_id = call.data.split("_")  # type: ignore
+    greeting = await Greeting.get(greeting_id)
+    if not greeting:
+        return
+
+    await state.set_state(EditGreeting.awaiting_delay)
+    await state.set_data({'greeting_id': greeting.id})
+    await call.message.edit_text("Введите нужную задержку в секундах")
+
+
+@router.message(EditGreeting.awaiting_delay, F.text)
+async def admin_chande_delay(message: Message, bot: Bot, user_db: User,
+                             state: FSMContext) -> None:
+    data = await state.get_data()
+    greeting = await Greeting.get(data.get("greeting_id"))
+    if not greeting:
+        return
+
+    try:
+        int(message.text)  # type: ignore
+    except:
+        await message.answer("Некорректное значение")
+        return
+
+    greeting.send_delay_seconds = int(message.text)
+    await greeting.save()
+    await admin_start(message, bot, user_db, state, menu_only=True)
 
 
 @router.callback_query(F.data.startswith("make_a_survey_"))
