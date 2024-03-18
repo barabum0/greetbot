@@ -40,7 +40,6 @@ async def accept_request(call: CallbackQuery, bot: Bot, state: FSMContext):
     *_, chat_id = call.data.split("_")  # type: ignore
 
     await bot.approve_chat_join_request(chat_id, call.from_user.id)
-    await call.message.delete()  # type: ignore
 
     # TODO: сделать более простой метод + защиту от ошибок
     greetings = await Greeting.find(Greeting.is_enabled == True).to_list()
@@ -50,6 +49,8 @@ async def accept_request(call: CallbackQuery, bot: Bot, state: FSMContext):
             await greeting.send_as_aiogram_message(bot, call.from_user.id, call.from_user)
         except:
             raise
+
+    await call.message.delete()  # type: ignore
 
 
 @router.callback_query(F.data.startswith("survey_answer_"))
