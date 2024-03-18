@@ -43,6 +43,8 @@ async def accept_request(message: Message, bot: Bot, state: FSMContext):
     data = await state.get_data()
     chat_id = data.get("chat_id")
 
+    await bot.approve_chat_join_request(chat_id, message.from_user.id)
+
     # TODO: сделать более простой метод + защиту от ошибок
     greetings = await Greeting.find(Greeting.is_enabled == True).to_list()
 
@@ -52,7 +54,6 @@ async def accept_request(message: Message, bot: Bot, state: FSMContext):
         except Exception as e:
             logger.exception(e)
 
-    await bot.approve_chat_join_request(chat_id, message.from_user.id)
     await call.message.delete()  # type: ignore
 
 
