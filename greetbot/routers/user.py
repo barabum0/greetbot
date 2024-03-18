@@ -68,8 +68,6 @@ async def accept_request(message: Message, bot: Bot, state: FSMContext, command:
         except Exception as e:
             logger.exception(e)
 
-    await call.message.delete()  # type: ignore
-
 
 @router.callback_query(F.data.startswith("survey_answer_"))
 async def survey_answer(call: CallbackQuery, bot: Bot, state: FSMContext, user_db: User):
