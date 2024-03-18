@@ -71,7 +71,7 @@ class DatabaseMessage(BaseModel):
             for media in self.media_files:
                 file = BufferedInputFile(file=media.base64.to_bytes(), filename=media.file_name or "file")
 
-                media_group.add(type=media.data_type.value, media=file, has_spoiler=media.in_spoiler)  # type: ignore
+                media_group.add(type=media.data_type.value, media=file, has_spoiler=media.in_spoiler, thumbnail=file)  # type: ignore
 
             await bot.send_media_group(chat_id, media=media_group.build())
 
