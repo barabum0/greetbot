@@ -42,7 +42,7 @@ class DatabaseMessage(BaseModel):
                                              file_name=message.document.file_name or "file.txt"))
 
             if caption is None:
-                caption = message.caption or message.text
+                caption = message.html_text
 
         return cls(caption=caption, media_files=media_files)
 
