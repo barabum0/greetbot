@@ -1,6 +1,7 @@
 import asyncio
 
 from aiogram import Dispatcher, Bot
+from aiogram.enums import ParseMode
 
 from greetbot.routers import init_routers
 from greetbot.services.database import init_database
@@ -10,7 +11,7 @@ from greetbot.types.settings import settings
 
 async def main() -> None:
     dispatcher = Dispatcher()
-    bot = Bot(token=settings.bot_token, parse_mode="HTML")
+    bot = Bot(token=settings.bot_token, parse_mode=ParseMode.HTML)
 
     configure_logger()
     await init_database()

@@ -4,7 +4,9 @@ from html import escape
 from typing import Self, TYPE_CHECKING
 
 from aiogram import Bot
+from aiogram.enums import ParseMode
 from aiogram.types import Message, BufferedInputFile, User, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.formatting import Text
 from aiogram.utils.media_group import MediaGroupBuilder
 from pydantic import BaseModel
 
@@ -62,7 +64,7 @@ class DatabaseMessage(BaseModel):
 
         if len(self.media_files) == 0 and self.caption is not None:
             await bot.send_message(chat_id=chat_id, text=apply_user_info(user, self.caption) or "",
-                                   reply_markup=reply_markup)
+                                   reply_markup=reply_markup, parse_mode=ParseMode.HTML)
             return
         elif len(self.media_files) > 0:
             media_group = MediaGroupBuilder(caption=apply_user_info(user, self.caption))
