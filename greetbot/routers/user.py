@@ -63,10 +63,12 @@ async def survey_answer(call: CallbackQuery, bot: Bot, state: FSMContext, user_d
 
     variant = next((v for v in greeting.survey_answer_variants if v.answer_id == answer_id), None)
     if variant is None:
-        await call.message.delete()
+        if greeting.delete_survey_after_answer:
+            await call.message.delete()
         return
 
-    await call.message.delete()
+    if greeting.delete_survey_after_answer:
+        await call.message.delete()
     user_db.survey_answers[greeting.id] = variant.answer_text
     await user_db.save()
 
