@@ -40,8 +40,14 @@ class DatabaseMessage(BaseModel):
             elif message.document is not None:
                 data = await bot.download(message.document.file_id)
                 data_bytes = data.read()  # type: ignore
-                media_files.append(MediaFile(data_type=MediaDataType.DOCUMENT, base64=Base64File.from_bytes(data_bytes),
-                                             file_name=message.document.file_name or "file.txt"))
+                mf = MediaFile(data_type=MediaDataType.DOCUMENT, base64=Base64File.from_bytes(data_bytes),
+                                             file_name=message.document.file_name or "file.txt")
+                if message.document.thumbnail is not None:
+                    thumbnail_data = await bot.download(message.document.thumbnail.file_id)
+                    thumbnail_data_bytes = thumbnail_data.read()  # type: ignore
+                    mf.thumbnail_base64 = Base64File.from_bytes(thumbnail_data_bytes)
+
+                media_files.append(mf)
 
             if caption is None:
                 caption = message.html_text
