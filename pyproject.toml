@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "greetbot"
-version = "0.1.11"
+version = "0.1.11.1"
 description = "A bot that will accept applications in the telegram channel and write a greeting"
 authors = ["Roman Sushka <barabum@duck.com>"]
 license = "MIT"
