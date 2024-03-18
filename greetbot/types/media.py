@@ -14,5 +14,6 @@ class MediaDataType(StrEnum):
 class MediaFile(BaseModel):
     data_type: MediaDataType
     base64: Base64File
+    thumbnail_base64: Base64File | None = None
     in_spoiler: bool = False
     file_name: str | None = None
