@@ -3,7 +3,7 @@ from datetime import datetime
 from beanie import Document
 from pydantic import Field
 
-from greetbot.types.message import DatabaseMessage
+from greetbot.types.message import DatabaseMessage, CopyMessage
 from greetbot.types.survey import AnswerVariant
 
 
@@ -18,3 +18,11 @@ class Greeting(DatabaseMessage, Document):
 
     class Settings:
         name = "greeting_messages"
+
+
+class GreetingCopy(CopyMessage, Document):
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    class Settings:
+        name = "greeting_copy_messages"

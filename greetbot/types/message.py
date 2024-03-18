@@ -97,3 +97,15 @@ class DatabaseMessage(BaseModel):
             output += f"\nЯвляется опросом"
 
         return output.strip()
+
+
+class CopyMessage(BaseModel):
+    from_chat_id: int
+    message_id: int
+
+    @classmethod
+    async def from_message(cls, message: Message) -> Self:
+        return cls(
+            from_chat_id=message.chat.id,
+            message_id=message.message_id
+        )
