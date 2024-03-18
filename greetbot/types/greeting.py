@@ -14,6 +14,7 @@ class Greeting(DatabaseMessage, Document):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     is_survey: bool = False
+    delete_survey_after_answer: bool = True
     survey_answer_variants: list[AnswerVariant] = []
 
     class Settings:
