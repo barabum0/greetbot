@@ -1,4 +1,5 @@
 from aiogram import Router, Bot, F
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import CommandStart, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ChatJoinRequest, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, \
@@ -37,7 +38,10 @@ async def chat_join(request: ChatJoinRequest, bot: Bot, state: FSMContext):
         )
         return
 
-    await request.approve()
+    try:
+        await request.approve()
+    except TelegramBadRequest:
+        pass
 
     # TODO: сделать более простой метод + защиту от ошибок
     greetings = await Greeting.find(Greeting.is_enabled == True).to_list()
@@ -50,7 +54,10 @@ async def chat_join(request: ChatJoinRequest, bot: Bot, state: FSMContext):
 
 @router.message(CommandStart(deep_link=True))
 async def accept_request(message: Message, bot: Bot, state: FSMContext, command: CommandObject):
-    await bot.approve_chat_join_request(int(command.args), message.from_user.id)
+    try:
+        await bot.approve_chat_join_request(int(command.args), message.from_user.id)
+    except TelegramBadRequest:
+        pass
 
     # TODO: сделать более простой метод + защиту от ошибок
     greetings = await Greeting.find(Greeting.is_enabled == True).to_list()
