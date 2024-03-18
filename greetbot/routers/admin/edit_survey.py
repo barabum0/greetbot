@@ -26,7 +26,7 @@ async def admin_edit_surveys_list(call: CallbackQuery, bot: Bot, user_db: User, 
 
     delete_after_answer_button = InlineKeyboardButton(
         text=f"{'[✅ Да]' if greeting.delete_survey_after_answer else '[❌ Нет]'} Удалять после ответа",
-        callback_data=f"delete_after_answer__{greeting.id}_{'no' if greeting.delete_survey_after_answer else 'yes'}",
+        callback_data=f"delete_after_answer__{greeting.id}",
     )
 
     keyboard_buttons = [
@@ -44,12 +44,12 @@ async def admin_edit_surveys_list(call: CallbackQuery, bot: Bot, user_db: User, 
 
 @router.callback_query(F.data.startswith("delete_after_answer__"))
 async def admin_set_delete_after_answer(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
-    greeting_id, state = call.data.split("__")[1].split("_") # type: ignore
+    greeting_id = call.data.split("__")[1] # type: ignore
     greeting = await Greeting.get(greeting_id)
     if not greeting:
         return
 
-    greeting.delete_survey_after_answer = (True if state == "yes" else False)
+    greeting.delete_survey_after_answer = not greeting.delete_survey_after_answer
     await greeting.save()
 
     await admin_edit_surveys_list(call, bot, user_db, state)
