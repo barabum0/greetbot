@@ -43,6 +43,7 @@ async def admin_edit_surveys_list(call: CallbackQuery, bot: Bot, user_db: User, 
                                  reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard_buttons))  # type: ignore
 
 
+@router.callback_query(F.data.startswith("delete_after_answer__"))
 async def admin_set_delete_after_answer(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
     greeting_id, state = call.data.split("__")[1].split("_") # type: ignore
     greeting = await Greeting.get(greeting_id)
