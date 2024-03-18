@@ -1,6 +1,7 @@
 from aiogram import Router, Bot, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ChatJoinRequest, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from loguru import logger
 
 from greetbot.services.middlewares.user import UserDBMiddleware
 from greetbot.types.greeting import Greeting
@@ -39,17 +40,16 @@ async def chat_join(request: ChatJoinRequest, bot: Bot, state: FSMContext):
 async def accept_request(call: CallbackQuery, bot: Bot, state: FSMContext):
     *_, chat_id = call.data.split("_")  # type: ignore
 
-    await bot.approve_chat_join_request(chat_id, call.from_user.id)
-
     # TODO: сделать более простой метод + защиту от ошибок
     greetings = await Greeting.find(Greeting.is_enabled == True).to_list()
 
     for greeting in greetings:
         try:
             await greeting.send_as_aiogram_message(bot, call.from_user.id, call.from_user)
-        except:
-            raise
+        except Exception as e:
+            logger.exception(e)
 
+    await bot.approve_chat_join_request(chat_id, call.from_user.id)
     await call.message.delete()  # type: ignore
 
 
