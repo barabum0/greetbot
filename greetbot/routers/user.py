@@ -22,7 +22,7 @@ async def chat_join(request: ChatJoinRequest, bot: Bot, state: FSMContext):
     await state.set_data({"chat_id": request.chat.id})
     db_user = await User.get(request.from_user.id)
     if not db_user:
-        db_user = await User(id=request.from_user.id).insert()
+        db_user = await User(id=request.from_user.id, username=request.from_user.username).insert()
 
     if settings.require_request_confirmation:
         await state.set_data({"chat_id": request.chat.id})

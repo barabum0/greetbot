@@ -9,6 +9,7 @@ class User(Document):
     is_blocked: bool = False
     is_admin: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    username: str | None = None
 
     survey_answers: dict[PydanticObjectId, str] = {}
 
