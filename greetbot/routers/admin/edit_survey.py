@@ -1,8 +1,6 @@
 from aiogram import Router, Bot, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, InaccessibleMessage, \
-    BufferedInputFile
-from aiogram.utils.formatting import Text, Pre
+from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, BufferedInputFile
 from aiogram.utils.media_group import MediaGroupBuilder
 from aiogram_media_group import media_group_handler
 
@@ -10,7 +8,6 @@ from greetbot.routers.admin.main_menu import admin_start
 from greetbot.services.fsm_states import Survey
 from greetbot.types.greeting import Greeting
 from greetbot.types.message import DatabaseMessage
-from greetbot.types.survey import AnswerVariant
 from greetbot.types.user import User
 
 router = Router(name="Edit survey")
