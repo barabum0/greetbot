@@ -1,7 +1,9 @@
 from aiogram import Router, Bot, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, InaccessibleMessage
+from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, InaccessibleMessage, \
+    BufferedInputFile
 from aiogram.utils.formatting import Text, Pre
+from aiogram.utils.media_group import MediaGroupBuilder
 from aiogram_media_group import media_group_handler
 
 from greetbot.routers.admin.main_menu import admin_start
@@ -28,11 +30,16 @@ async def admin_edit_surveys_list(call: CallbackQuery, bot: Bot, user_db: User, 
         text=f"{'[✅ Да]' if greeting.delete_survey_after_answer else '[❌ Нет]'} Удалять после ответа",
         callback_data=f"delete_after_answer__{greeting.id}",
     )
+    get_user_list_button = InlineKeyboardButton(
+        text=f"📋 Получить список пользователей, ответивших в опросе",
+        callback_data=f"get_survey_answers__{greeting.id}",
+    )
 
     keyboard_buttons = [
-        [InlineKeyboardButton(text=v.answer_text, callback_data=f"edit_survey__{greeting.id}_{v.answer_id}")] for v in
-        greeting.survey_answer_variants
-    ] + [[delete_after_answer_button]]
+                           [InlineKeyboardButton(text=v.answer_text,
+                                                 callback_data=f"edit_survey__{greeting.id}_{v.answer_id}")] for v in
+                           greeting.survey_answer_variants
+                       ] + [[delete_after_answer_button]]
     keyboard_buttons.append([
         InlineKeyboardButton(text=f"📊 Заменить варианты", callback_data=f"make_a_survey_{greeting.id}"),
         InlineKeyboardButton(text=f"↩️ Назад", callback_data=f"back_to_start"),
@@ -44,7 +51,7 @@ async def admin_edit_surveys_list(call: CallbackQuery, bot: Bot, user_db: User, 
 
 @router.callback_query(F.data.startswith("delete_after_answer__"))
 async def admin_set_delete_after_answer(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
-    greeting_id = call.data.split("__")[1] # type: ignore
+    greeting_id = call.data.split("__")[1]  # type: ignore
     greeting = await Greeting.get(greeting_id)
     if not greeting:
         return
@@ -53,6 +60,34 @@ async def admin_set_delete_after_answer(call: CallbackQuery, bot: Bot, user_db: 
     await greeting.save()
 
     await admin_edit_surveys_list(call, bot, user_db, state)
+
+
+@router.callback_query(F.data.startswith("get_survey_answers__"))
+async def admin_get_survey_answers(call: CallbackQuery, bot: Bot, user_db: User, state: FSMContext) -> None:
+    greeting_id = call.data.split("__")[1]  # type: ignore
+    greeting = await Greeting.get(greeting_id)
+    if not greeting:
+        return
+
+    await call.message.edit_text("<i>Подготовка списков...</i>")
+
+    answered_users = await User.find(
+        {f"survey_answers.{greeting.id}": {"$exists": True}, "username": {"$ne": None}}).to_list()
+    answer_users: dict[str, list[User]] = {}
+    for user in answered_users:
+        if user.survey_answers[greeting.id] not in answer_users:
+            answer_users[user.survey_answers[greeting.id]] = [user]
+            continue
+
+        answer_users[user.survey_answers[greeting.id]].append(user)
+
+    file_group = MediaGroupBuilder(caption="Ваши списки")
+    for answer, users in answer_users.items():
+        file = BufferedInputFile(file="\n".join(f"@{u.username}" for u in users).encode('utf-8'), filename=f"{answer}.txt")
+        file_group.add_document(file)
+
+    await call.message.delete()
+    await call.message.answer_media_group(file_group)
 
 
 @router.callback_query(F.data.startswith("edit_survey__"))
