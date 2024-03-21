@@ -87,7 +87,7 @@ async def admin_get_survey_answers(call: CallbackQuery, bot: Bot, user_db: User,
         await call.message.delete()
     except:
         pass
-    await call.message.answer_media_group(file_group)
+    await call.message.answer_media_group(file_group.build())
 
 
 @router.callback_query(F.data.startswith("edit_survey__"))
