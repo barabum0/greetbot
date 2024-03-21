@@ -39,7 +39,7 @@ async def admin_edit_surveys_list(call: CallbackQuery, bot: Bot, user_db: User, 
                            [InlineKeyboardButton(text=v.answer_text,
                                                  callback_data=f"edit_survey__{greeting.id}_{v.answer_id}")] for v in
                            greeting.survey_answer_variants
-                       ] + [[delete_after_answer_button, get_user_list_button]]
+                       ] + [get_user_list_button, [delete_after_answer_button]]
     keyboard_buttons.append([
         InlineKeyboardButton(text=f"📊 Заменить варианты", callback_data=f"make_a_survey_{greeting.id}"),
         InlineKeyboardButton(text=f"↩️ Назад", callback_data=f"back_to_start"),
@@ -86,7 +86,10 @@ async def admin_get_survey_answers(call: CallbackQuery, bot: Bot, user_db: User,
         file = BufferedInputFile(file="\n".join(f"@{u.username}" for u in users).encode('utf-8'), filename=f"{answer}.txt")
         file_group.add_document(file)
 
-    await call.message.delete()
+    try:
+        await call.message.delete()
+    except:
+        pass
     await call.message.answer_media_group(file_group)
 
 
