@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from beanie import Document
 from pydantic import Field
@@ -19,6 +19,7 @@ class Greeting(DatabaseMessage, Document):
 
     class Settings:
         name = "greeting_messages"
+        cache_expiration_time = timedelta(seconds=10)
 
 
 class GreetingCopy(CopyMessage, Document):
