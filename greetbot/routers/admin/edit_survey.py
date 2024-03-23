@@ -1,4 +1,5 @@
 from aiogram import Router, Bot, F
+from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, BufferedInputFile
 from aiogram.utils.media_group import MediaGroupBuilder
@@ -232,3 +233,16 @@ async def admin_add_reply_message_media_not_media_group(message: Message, bot: B
                                                         state: FSMContext) -> None:
     await process_add_reply([message], bot, user_db, state)
     await admin_start(message, bot, user_db, state, menu_only=True)
+
+
+@router.message(Command("baza"))
+async def admin_get_user_lists(message: Message, bot: Bot, user_db: User, state: FSMContext) -> None:
+    survey_greetings = await Greeting.find(Greeting.is_survey == True).to_list()
+    if len(survey_greetings) == 0:
+        await message.answer("У вас не задано ни одного опроса!")
+        return
+
+    text = "\n\n".join([f"{index}) {greeting.settings_report}" for index, greeting in enumerate(survey_greetings)])
+
+    keyboard_buttons = [[InlineKeyboardButton(text=f"Получить списки для опроса {index}", callback_data=f"get_survey_answers__{greeting.id}")] for index, greeting in enumerate(survey_greetings)]
+    await message.answer(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard_buttons))
