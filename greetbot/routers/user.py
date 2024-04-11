@@ -63,7 +63,8 @@ async def accept_request(message: Message, bot: Bot, state: FSMContext, command:
 
     try:
         await bot.approve_chat_join_request(int(chat_id), message.from_user.id)
-    except TelegramBadRequest:
+    except TelegramBadRequest as e:
+        logger.warning("Failed to accept chat join request. {e}", e=e.message)
         return
 
     # TODO: сделать более простой метод + защиту от ошибок
