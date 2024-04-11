@@ -1,7 +1,7 @@
 [tool.poetry]
+package-mode = false
 name = "greetbot"
-version = "0.3"
-description = "A bot that will accept applications in the telegram channel and write a greeting"
+description = "A bot that accepts applications to the Telegram channel and writes a greeting"
 authors = ["Roman Sushka <barabum@duck.com>"]
 license = "MIT"
 readme = "README.md"
@@ -20,11 +20,6 @@ mypy = "^1.8.0"
 isort = "^5.13.2"
 black = "^24.1.1"
 pre-commit = "^3.6.1"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
 
 [tool.poetry.scripts]
 app = "greetbot.__main__:start"
