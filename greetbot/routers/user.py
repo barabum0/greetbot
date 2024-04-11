@@ -64,7 +64,7 @@ async def accept_request(message: Message, bot: Bot, state: FSMContext, command:
     try:
         await bot.approve_chat_join_request(int(chat_id), message.from_user.id)
     except TelegramBadRequest:
-        pass
+        return
 
     # TODO: сделать более простой метод + защиту от ошибок
     greetings = await Greeting.find(Greeting.is_enabled == True).to_list()
