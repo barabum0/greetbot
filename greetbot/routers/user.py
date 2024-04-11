@@ -27,15 +27,15 @@ async def chat_join(request: ChatJoinRequest, bot: Bot, state: FSMContext):
     if settings.require_request_confirmation:
         await state.set_data({"chat_id": request.chat.id})
 
-        await bot.send_message(
+        message = await bot.send_message(
             request.from_user.id,
             settings.request_confirmation_message_text.replace("{{ channel_name }}",
                                                                request.chat.full_name),
-            reply_markup=InlineKeyboardMarkup(
+        )
+        await message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(
                 inline_keyboard=[[InlineKeyboardButton(
                     text=settings.request_confirmation_button_text,
-                    url=await create_start_link(bot, str(request.chat.id)))]])
-        )
+                    url=await create_start_link(bot, f"{request.chat.id}_{message.message_id}"))]]))
         return
 
     try:
@@ -54,8 +54,15 @@ async def chat_join(request: ChatJoinRequest, bot: Bot, state: FSMContext):
 
 @router.message(CommandStart(deep_link=True))
 async def accept_request(message: Message, bot: Bot, state: FSMContext, command: CommandObject):
+    chat_id, message_id = command.args.split("_")
+
     try:
-        await bot.approve_chat_join_request(int(command.args), message.from_user.id)
+        await bot.delete_message(message.chat.id, message_id)
+    except:
+        pass
+
+    try:
+        await bot.approve_chat_join_request(int(chat_id), message.from_user.id)
     except TelegramBadRequest:
         pass
 
